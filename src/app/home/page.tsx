@@ -3,6 +3,8 @@ import React, { useEffect, useContext, useState } from 'react';
 import Image from 'next/image';
 import HomeIcon from '../asset/image/home_icon.png';
 import EditIcon from '../asset/image/edit_icon.png';
+import DeleteIcon from '../asset/image/delete_icon.png';
+import CommentIcon from '../asset/image/comment_icon.png';
 import Link from 'next/link';
 import { UserContext, UserProvider } from '../../context/UserContext';
 import { on } from 'events';
@@ -38,7 +40,7 @@ export default function Homepage() {
     useEffect(() => { }, [posts])
 
     const onCreatePostClick = () => {
-        setIsModalOpen(true);
+        setIsModalCreatePostOpen(true);
     };
 
     const handleCreatePost = async () => {
@@ -56,7 +58,12 @@ export default function Homepage() {
         });
         const data = await response.json();
         console.log('Create Post response data:', data);
-        setPosts((prevPosts: any) => [...prevPosts, data]);
+        setPosts((prevPosts: any) => {
+            const updatedPosts = [...prevPosts, data];
+            setDisplayPost(updatedPosts);
+            return updatedPosts;
+        });
+        setIsModalCreatePostOpen(false);
     };
 
     const onDropdownClick = (tag: string) => {
@@ -110,11 +117,11 @@ export default function Homepage() {
                 {/* Right Content */}
                 <div className="flex-1 flex-row p-4">
                     {/* Add Post Modal */}
-                    {isModalOpen && (
+                    {isModalCreatePostOpen && (
                         <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-20">
                             <div className="bg-white p-6 rounded-md shadow-md w-96">
-                                <h2 className="text-xl text-black font-bold mb-4">Add Comment</h2>
-                                <CommunityButton 
+                                <h2 className="text-xl text-black font-bold mb-4">Create Post</h2>
+                                <CommunityButton
                                     setIsDropdownOpen={setIsDropdownCreatePostOpen}
                                     isDropdownOpen={isDropdownCreatePostOpen}
                                     onDropdownClick={onDropdownCreatePostClick}
@@ -135,7 +142,7 @@ export default function Homepage() {
                                 ></textarea>
                                 <div className="flex flex-col space-y-4">
                                     <button
-                                        onClick={() => setIsModalOpen(false)}
+                                        onClick={() => setIsModalCreatePostOpen(false)}
                                         className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
                                     >
                                         Cancel
@@ -200,26 +207,29 @@ export default function Homepage() {
                                 <Link
                                     key={index}
                                     href={{ pathname: '/home/posts', query: { id: post.id } }}
-                                    className="bg-white p-4 rounded-md shadow-md flex flex-col h-full hover:bg-gray-50 transition"
+                                    className="bg-white p-4 rounded-md shadow-md flex flex-col h-full hover:bg-gray-50 transition relative"
                                 >
+                                    <div className="absolute top-2 right-2 flex gap-2">
+                                        <button 
+                                        className="text-gray-500 hover:text-gray-700">
+                                            <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
+                                        </button>
+                                        <button className="text-gray-500 hover:text-gray-700">
+                                            <Image src={DeleteIcon} alt="Edit Icon" width={16} height={16} />
+                                        </button>
+                                    </div>
                                     <h3 className="text-sm font-medium text-gray-500 mb-2">By {post.author}</h3>
+                                    <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
+                                        <span
+                                            className="bg-gray-200 px-3 py-1 rounded-md text-sm text-black"
+                                        >
+                                            {post?.tag}
+                                        </span>
+                                    </div>
                                     <h2 className="text-lg font-bold text-gray-800">{post.title}</h2>
                                     <p className="text-gray-600 flex-grow mt-2">{post.content}</p>
                                     <div className="flex items-center mt-4 text-gray-500">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-5 w-5 mr-1"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M17 8h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10a2 2 0 012-2h2m3-3h4m-4 0a2 2 0 00-2 2v1h8V7a2 2 0 00-2-2m-4 0h4"
-                                            />
-                                        </svg>
+                                        <Image src={CommentIcon} alt="Edit Icon" width={16} height={16} className='mr-4' />
                                         {post.comments?.length || 0} comments
                                     </div>
                                 </Link>
@@ -235,15 +245,15 @@ export default function Homepage() {
 }
 
 
-const CommunityButton: React.FC<{ 
-    setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>; 
-    isDropdownOpen: boolean; 
-    onDropdownClick: (tag: string) => void; 
+const CommunityButton: React.FC<{
+    setIsDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    isDropdownOpen: boolean;
+    onDropdownClick: (tag: string) => void;
 }> = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }) => {
     return (
         <div className="relative inline-block text-left mr-4">
             <button
-                className="text-black px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+                className="text-black flex-1 px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
                 Community
