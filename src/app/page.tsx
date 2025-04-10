@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { UserContext, UserProvider } from "../context/UserContext"; // Import UserContext
+import AboardLogo from './asset/image/aboard_logo.png'; // Adjust the path as necessary
 
 
 export default function Home() {
@@ -37,37 +38,63 @@ export default function Home() {
     }
   };
   return (
-    <div style={{ backgroundColor: "green", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-      <h1 style={{ color: "white", fontWeight: "bold", fontSize: 50 }}>Sign In</h1>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsernameLocal(e.target.value)}
-        style={{
-          marginTop: "20px",
-          padding: "10px",
-          fontSize: "16px",
-          borderRadius: "5px",
-          border: "1px solid #ccc",
-          width: "250px",
-        }}
-      />
-      <button
-        onClick={handleLogin}
-        style={{
-          marginTop: "20px",
-          padding: "10px 20px",
-          fontSize: "16px",
-          backgroundColor: "white",
-          color: "green",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Login
-      </button>
+    <div className="flex h-screen bg-custom-green-500">
+      {/* Left Side */}
+      <div className="flex flex-col justify-center items-center w-1/2 bg-custom-green-500">
+        <h1 className="text-white font-bold text-5xl mb-8">Sign In</h1>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsernameLocal(e.target.value)}
+          className="mt-4 p-3 text-lg rounded border border-gray-300 w-72" // Increased width
+        />
+        <button
+          onClick={handleLogin}
+          className="mt-6 p-3 text-lg font-semibold text-white bg-custom-green-success rounded hover:bg-green-400 w-72" // Increased width
+        >
+          Sign In
+        </button>
+      </div>
+
+      {/* Right Side */}
+      <div className="relative w-1/2 bg-custom-green-300 rounded-tl-[50px] rounded-bl-[50px] flex justify-center items-center">
+        <div className="text-center">
+          <Image src={AboardLogo} alt="A board" width={200} height={200} />
+          <p className="text-white text-2xl mt-4">A Board</p>
+        </div>
+      </div>
     </div>
   );
+  // return (
+  //   <div className="flex h-screen bg-custom-green-500" 
+  //   >
+  //     {/* Left Side */}
+  //     <div className="flex flex-col justify-center items-center w-1/2 bg-custom-green-500">
+  //       <h1 className="text-green-500 font-bold text-5xl mb-8">Sign In</h1>
+  //       <input
+  //         type="text"
+  //         placeholder="Username"
+  //         value={username}
+  //         onChange={(e) => setUsernameLocal(e.target.value)}
+  //         className="mt-4 p-3 text-lg rounded border border-gray-300 w-64"
+  //       />
+  //       <button
+  //         onClick={handleLogin}
+  //         className="mt-6 px-6 py-3 text-lg font-semibold text-white bg-custom-green-300 rounded hover:bg-green-400"
+  //       >
+  //         Sign In
+  //       </button>
+  //     </div>
+
+  //     {/* Right Side */}
+  //     <div className="relative w-1/2 bg-green-300 rounded-tl-[50px] rounded-bl-[50px] flex justify-center items-center">
+  //       <div className="text-center">
+  //         <Image src={AboardLogo} alt="A board" width={200} height={200} />
+  //         <p className="text-white text-2xl mt-4">A Board</p>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
+
 }
