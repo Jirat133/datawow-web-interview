@@ -38,9 +38,9 @@ export default function Home() {
     }
   };
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col md:flex-row h-screen bg-custom-green-500">
       {/* Bottom/Left Side */}
-      <div className="flex flex-col justify-center items-center bg-custom-green-500 md:w-1/2 w-full">
+      <div className="flex flex-col justify-center items-center md:w-1/2 w-full">
         <h1 className="text-white font-bold text-5xl mb-8">Sign In</h1>
         <input
           type="text"
