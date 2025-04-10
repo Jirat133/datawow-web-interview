@@ -177,7 +177,7 @@ export default function PostPage() {
     return (
         <div className="font-sans bg-white min-h-screen flex">
             {/* Top Bar */}
-            <div className="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-green-600 text-white z-10">
+            <div className="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-custom-green-500 text-white z-10">
                 <span>aBoard</span>
                 <button className="bg-light-green-500 text-green-800 px-4 py-2 rounded-md">
                     Sign In

@@ -9,6 +9,8 @@ import SearchIcon from '../asset/image/search_icon.png';
 import Link from 'next/link';
 import { UserContext, UserProvider } from '../../context/UserContext';
 import ChevronDown from '../asset/image/chevron_down.png';
+import UserIcon from '../asset/image/user_icon.png';
+import MenuIcon from '../asset/image/menu_icon.png';
 import { on } from 'events';
 
 export default function Homepage() {
@@ -103,7 +105,7 @@ export default function Homepage() {
     };
 
     const handleEditpost = async () => {
-        try{
+        try {
             const response = await fetch(`http://localhost:3001/posts/${editPostId}`, {
                 method: "PATCH",
                 headers: {
@@ -112,7 +114,7 @@ export default function Homepage() {
                 body: JSON.stringify({
                     title: postTitle,
                     content: postContent,
-                    tag: tagModal,  
+                    tag: tagModal,
                     author: currentUser.username, // Author of the post
                     updatedAt: new Date().toISOString(), // Update timestamp
                 })
@@ -123,8 +125,8 @@ export default function Homepage() {
             Object.assign(newPost[posts.findIndex((post: any) => post.id = editPostId)], data);
             setPosts(newPost);
             setDisplayPost(newPost);
- 
-        }catch(err){
+
+        } catch (err) {
             console.error('Failed to edit post', err);
         }
         clearState();
@@ -153,22 +155,25 @@ export default function Homepage() {
             {/* Top Bar */}
             <div className="bg-custom-green-500 text-white flex justify-between items-center px-4 py-3">
                 <div className="text-lg font-bold italic">a board</div>
-                <button className="text-white focus:outline-none">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 6h16M4 12h16m-7 6h7"
+                <div className="flex items-center">
+                    <span className="hidden sm:block text-white mr-2">{currentUser.username}</span>
+                    <Image
+                        src={UserIcon}
+                        alt="User Icon"
+                        className="hidden sm:block ml-2 w-6 h-6 text-gray-500 mr-2"
+                        width={20}
+                        height={20}
+                    />
+                    <button className="block sm:hidden">
+                        <Image
+                            src={MenuIcon}
+                            alt="Edit Icon"
+                            className="w-6 h-6"
+                            width={20}
+                            height={20}
                         />
-                    </svg>
-                </button>
+                    </button>
+                </div>
             </div>
 
             {/* Main Content */}
@@ -380,11 +385,11 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
     if (!isModalOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-20">
+        <div className="fixed inset-0 backdrop-brightness-70 flex justify-center items-center z-20">
             <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-96">
                 <h2 className="text-xl text-black font-bold mb-4">{modalTitle}</h2>
                 <button
-                    className="flex items-center justify-center mb-4 border border-green-300 rounded-md px-2 py-2"
+                    className="inline-flex items-center justify-center mb-4 border border-green-300 rounded-md px-2 py-2 w-30"
                     onClick={() => setIsDropDownOpen(!isDropdownOpen)}
                 >
                     <DropDownTag
@@ -393,7 +398,7 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
                         onDropdownClick={onDropdownClick}
                     />
                     <div className="flex items-center">
-                        <span className="text-green-500 mx-2 text-center">{modalTag ? modalTag : 'Community'}</span>
+                        <span className="text-green-500 mr-2 text-center">{modalTag ? modalTag : 'Community'}</span>
                         <Image
                             src={ChevronDown}
                             alt="Dropdown Icon"

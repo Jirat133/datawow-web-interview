@@ -26,20 +26,19 @@ export default function Home() {
       }
 
       const data = await response.json();
-      console.log("Login response data:", data);
       setUser({
         username: data.username,
-        id: data.id, // Assuming the response contains userId
-      }); // Set username in context
+        id: data.id,
+      }); 
       router.push("/home");
-      console.log("Login successful:", data);
     } catch (error) {
+      alert("Login failed. Please try again.");
       console.error("Error during login:", error);
     }
   };
   return (
     <div className="flex flex-col md:flex-row h-screen bg-custom-green-500">
-      {/* Bottom/Left Side */}
+      {/* Sign In part */}
       <div className="flex flex-col justify-center items-center md:w-1/2 w-full">
         <h1 className="text-white font-bold text-5xl mb-8">Sign In</h1>
         <input
@@ -57,7 +56,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Top/Right Side */}
+      {/* Logo part */}
       <div className="relative bg-custom-green-300 md:w-1/2 w-full rounded-b-[50px] md:rounded-b-none md:rounded-tl-[50px] md:rounded-bl-[50px] flex justify-center items-center">
         <div className="text-center">
           <Image src={AboardLogo} alt="A board" width={200} height={200} />
