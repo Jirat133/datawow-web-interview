@@ -151,9 +151,9 @@ export default function Homepage() {
         setIsModalEditOpen(true);
     };
     return (
-        <div className="min-h-screen bg-gray-300">
+        <div className="h-screen bg-custom-grey-100 overflow-hidden">
             {/* Top Bar */}
-            <div className="bg-custom-green-500 text-white flex justify-between items-center px-4 py-3">
+            <div className="fixed top-0 left-0 w-full bg-custom-green-500 text-white flex justify-between items-center p-4 z-10">
                 <div className="text-lg font-bold italic">a board</div>
                 <div className="flex items-center">
                     <span className="hidden sm:block text-white mr-2">{currentUser.username}</span>
@@ -177,7 +177,7 @@ export default function Homepage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex bg-grey-300 flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row h-full pt-16">
                 {/* Left Menu */}
                 <div className="hidden md:block w-full md:w-1/4 p-4">
                     <ul className="space-y-4">
@@ -224,6 +224,7 @@ export default function Homepage() {
                         postContent={postContent}
                         setPostContent={setPostContent}
                     />
+                    {/* Delete Post Modal */}
                     {/* Search Box */}
                     <div className="flex items-center justify-between mb-4">
                         <div className='flex items-center flex-grow border border-white rounded-md'>
@@ -270,10 +271,10 @@ export default function Homepage() {
                     </div>
 
                     {/* Post Feed Layout */}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-0 overflow-y-auto h-full rounded-md">
                         {displayPost.map((post: any, index: any) => {
                             return (
-                                <div key={index} className="relative bg-white p-4 rounded-md shadow-md flex flex-col h-full hover:bg-gray-50 transition">
+                                <div key={index} className="relative bg-white p-4 flex flex-col h-full border-b border-gray-300 hover:bg-gray-50 transition">
                                     <div className="absolute top-2 right-2 flex gap-2">
                                         <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditPostClick(post)}>
                                             <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
@@ -286,15 +287,28 @@ export default function Homepage() {
                                         </button>
                                     </div>
                                     <Link href={{ pathname: '/home/posts', query: { id: post.id } }} className="flex-grow">
-                                        <h3 className="text-sm font-medium text-gray-500 mb-2">By {post.author}</h3>
+                                        <div className='flex items-center flex-row mb-4'>
+                                            <div className='flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full'>
+                                                <Image
+                                                    src={UserIcon}
+                                                    alt="Post Image"
+                                                    width={32}
+                                                    height={32}
+                                                    className="rounded-full"
+                                                />
+
+                                            </div>
+                                            <h3 className="text-sm font-medium text-gray-500 font-bold ml-2">{post.author}</h3>
+                                        </div>
+
                                         <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
-                                            <span className="bg-gray-200 px-3 py-1 rounded-xl text-sm text-black">
+                                            <span className="bg-gray-200 px-3 py-1 rounded-xl text-xs text-black">
                                                 {post?.tag}
                                             </span>
                                         </div>
-                                        <h2 className="text-lg font-bold text-gray-800">{post.title}</h2>
-                                        <p className="text-gray-600 flex-grow mt-2">{post.content}</p>
-                                        <div className="flex items-center mt-4 text-gray-500">
+                                        <h2 className="text-xl font-bold text-gray-800">{post.title}</h2>
+                                        <p className="text-base text-gray-600 flex-grow mt-2">{post.content}</p>
+                                        <div className="flex items-center mt-2 text-gray-500">
                                             <Image src={CommentIcon} alt="Comment Icon" width={16} height={16} className="mr-4" />
                                             {post.comments?.length || 0} comments
                                         </div>

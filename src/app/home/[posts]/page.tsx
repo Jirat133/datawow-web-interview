@@ -9,6 +9,9 @@ import CommentIcon from '../../asset/image/comment_icon.png';
 import SearchIcon from '../../asset/image/search_icon.png';
 import Image from 'next/image';
 import { ModalPost } from '../page';
+import UserIcon from '../../asset/image/user_icon.png';
+import MenuIcon from '../../asset/image/menu_icon.png';
+import BackIcon from '../../asset/image/back_icon.png';
 
 
 interface Comment {
@@ -56,13 +59,13 @@ export default function PostPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const postId = searchParams.get('id');
+    const [isCommentBoxOpen, setIsCommentBoxOpen] = useState(false);
     const [post, setPost] = useState<PostResponseDto | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
     const [editCommentContent, setEditCommentContent] = useState('');
     const [commentContent, setCommentContent] = useState('');
     const [newComment, setNewComment] = useState('');
-    const [commentList, setCommentList] = useState<Comment[]>([]);
     const { user: currentUser } = useContext(UserContext);
 
     const fetchPostDetail = async (postId: string | null) => {
@@ -175,7 +178,7 @@ export default function PostPage() {
     };
 
     return (
-        <div className="font-sans bg-white min-h-screen flex">
+        <div className="bg-custom-grey-300 h-screen flex overflow-hidden">
             {/* Top Bar */}
             <div className="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-custom-green-500 text-white z-10">
                 <span>aBoard</span>
@@ -186,31 +189,23 @@ export default function PostPage() {
 
 
             {/* Main Content */}
-            <div className="flex flex-1 flex-col md:flex-row w-full mt-16">
+            <div className="flex flex-col md:flex-row h-full pt-16 w-full">
 
                 {/* Left Menu Bar */}
-                <div className="w-1/5 bg-gray-100 pt-16 p-4">
+                <div className="hidden md:block w-full md:w-1/4 p-4">
                     <ul className="space-y-4">
-                        <li>
-                            <button
-                                onClick={() => router.push('/')}
-                                className="text-black hover:text-green-600"
-                            >
-                                Home
-                            </button>
+                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                            <Image src={HomeIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
+                            Home
                         </li>
-                        <li>
-                            <button
-                                onClick={() => router.push('/blog')}
-                                className="text-black hover:text-green-600"
-                            >
-                                Our Blog
-                            </button>
+                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                            <Image src={EditIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
+                            Our Blog
                         </li>
                     </ul>
                 </div>
-                {/* Go Back Button */}
-                <div className="flex-1 p-4">
+                {/* Right Content */}
+                <div className="flex-1 p-4 bg-white pl-16 pt-12">
                     {/* Edit Comment Modal */}
                     <ModalComment
                         isModalOpen={isModalOpen}
@@ -248,23 +243,34 @@ export default function PostPage() {
                             </div>
                         </div>
                     )} */}
+                    {/* Go Back Button */}
                     <button
                         onClick={() => router.back()}
-                        className="bg-none border border-green-500 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-100 text-green-500 mb-4"
+                        className="bg-custom-grey-100 w-12 h-12 flex items-center justify-center rounded-full cursor-pointer hover:bg-custom-grey-300 text-white mb-4 ml-5"
                     >
-                        Go Back
+                        <Image src={BackIcon} alt="Back Icon" className="w-6 h-6" width={24} height={24} />
                     </button>
                     {/* Post Details */}
                     <div className="p-5">
                         <div className='flex items-center gap-2 mb-4'>
-                            <p className="font-bold mb-2 text-black">{post?.author}</p>
-                            <p className=" text-black mb-2">
+                            <div className='flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full'>
+                                <Image
+                                    src={UserIcon}
+                                    alt="Post Image"
+                                    width={32}
+                                    height={32}
+                                    className="rounded-full"
+                                />
+
+                            </div>
+                            <p className="font-bold text-black">{post?.author}</p>
+                            <p className=" text-black">
                                 {new Date(post?.createdAt).toLocaleDateString()}
                             </p>
                         </div>
                         <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
                             <span
-                                className="bg-gray-200 px-3 py-1 rounded-md text-sm text-black"
+                                className="bg-gray-100 px-3 py-1 rounded-xl text-sm text-black"
                             >
                                 {post?.tag}
                             </span>
@@ -273,71 +279,85 @@ export default function PostPage() {
                         <p className="mb-6 text-base text-black ">{post?.content}</p>
 
                         <div className="flex items-center gap-2 mb-6">
-                            <Image src={CommentIcon} alt="Comment Icon" width={16} height={16} className="mr-4" />
+                            <Image src={CommentIcon} alt="Comment Icon" width={20} height={20} className="mr-4" />
                             <span className="text-black">{post?.comments?.length ?? 0} comments</span>
                         </div>
 
                         {/* Add Comment Button */}
-                        {/* <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="border border-green-600 text-green-600 px-4 py-2 rounded-md hover:bg-green-100">
-                            Add Comment
-                        </button> */}
-                        {/* <div className="border border-gray-300 rounded-md mb-6"> */}
-                        <textarea
-                            className="border border-gray-300 rounded-md p-4 mb-6 w-full text-black"
-                            rows={3}
-                            placeholder="Write your comment here..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                        ></textarea>
-                        {/* </div> */}
-                        <div className="flex justify-end space-x-4">
+                        {   !isCommentBoxOpen && (
                             <button
-                                onClick={() => setNewComment('')}
-                                className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-                            >
-                                Cancel
+                                onClick={() => setIsCommentBoxOpen(true)}
+                                className="border border-green-600 text-green-600 px-4 py-2 rounded-md hover:bg-green-100">
+                                Add Comment
                             </button>
-                            <button
-                                onClick={handlePostComment}
-                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                            >
-                                Post
-                            </button>
-                        </div>
+                            )
+       
+                        }
+                        {
+                            isCommentBoxOpen && (
+                                <div>
+                                    <textarea
+                                        className="border border-gray-300 rounded-md p-4 mb-6 w-full text-black"
+                                        rows={3}
+                                        placeholder="Write your comment here..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                    ></textarea>
+                                    <div className="flex justify-end space-x-4">
+                                        <button
+                                            onClick={() => {
+                                                setIsCommentBoxOpen(false);
+                                                setNewComment('');
+                                            }}
+                                            className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handlePostComment}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                                        >
+                                            Post
+                                        </button>
+                                    </div>
+                                </div>
+                            )
+                        }
+
 
                         {/* Comments Section */}
                         <h2 className="text-xl font-semibold mt-6 mb-4 text-black">Comments</h2>
-                        <ul className="list-none p-0">
-                            {post?.comments?.map((comment) => (
-                                <li
-                                    key={comment.id}
-                                    className="relative mb-4 border-b border-gray-300 pb-4"
-                                >
-                                    <div className="absolute top-2 right-2 flex gap-2">
-                                        <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditCommentClick(comment)}>
-                                            <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteComment(comment.id)}
-                                            className="text-gray-500 hover:text-gray-700"
-                                        >
-                                            <Image src={DeleteIcon} alt="Delete Icon" width={16} height={16} />
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-gray-500">
-                                            {comment.author}
-                                        </span>
-                                        <span className="text-gray-500">
-                                            {new Date(comment.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                    <p className="text-black">{comment.content}</p>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="overflow-y-auto max-h-96 h-full">
+                            <ul className="list-none p-0">
+                                {post?.comments?.map((comment) => (
+                                    <li
+                                        key={comment.id}
+                                        className="relative mb-4 border-b border-gray-300 pb-4"
+                                    >
+                                        <div className="absolute top-2 right-2 flex gap-2">
+                                            <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditCommentClick(comment)}>
+                                                <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteComment(comment.id)}
+                                                className="text-gray-500 hover:text-gray-700"
+                                            >
+                                                <Image src={DeleteIcon} alt="Delete Icon" width={16} height={16} />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-gray-500">
+                                                {comment.author}
+                                            </span>
+                                            <span className="text-gray-500">
+                                                {new Date(comment.createdAt).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-black">{comment.content}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
