@@ -12,6 +12,8 @@
   --color-custom-green-300: #2B5F44;
   --color-custom-green-success: #49A569;
   --color-custom-text-black: #191919;
+  --color-custom-grey-100: #BBC2C0;
+  --color-custom-grey-300: #939494;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);

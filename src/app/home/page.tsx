@@ -151,8 +151,8 @@ export default function Homepage() {
     return (
         <div className="min-h-screen bg-gray-300">
             {/* Top Bar */}
-            <div className="bg-green-900 text-white flex justify-between items-center px-4 py-3">
-                <div className="text-lg font-bold">a board</div>
+            <div className="bg-custom-green-500 text-white flex justify-between items-center px-4 py-3">
+                <div className="text-lg font-bold italic">a board</div>
                 <button className="text-white focus:outline-none">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -174,7 +174,7 @@ export default function Homepage() {
             {/* Main Content */}
             <div className="flex bg-grey-300 flex-col md:flex-row">
                 {/* Left Menu */}
-                <div className="w-full md:w-1/4 p-4">
+                <div className="hidden md:block w-full md:w-1/4 p-4">
                     <ul className="space-y-4">
                         <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
                             <Image src={HomeIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
@@ -267,7 +267,6 @@ export default function Homepage() {
                     {/* Post Feed Layout */}
                     <div className="flex flex-col gap-4">
                         {displayPost.map((post: any, index: any) => {
-                            console.log('post', post);
                             return (
                                 <div key={index} className="relative bg-white p-4 rounded-md shadow-md flex flex-col h-full hover:bg-gray-50 transition">
                                     <div className="absolute top-2 right-2 flex gap-2">
@@ -284,7 +283,7 @@ export default function Homepage() {
                                     <Link href={{ pathname: '/home/posts', query: { id: post.id } }} className="flex-grow">
                                         <h3 className="text-sm font-medium text-gray-500 mb-2">By {post.author}</h3>
                                         <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
-                                            <span className="bg-gray-200 px-3 py-1 rounded-md text-sm text-black">
+                                            <span className="bg-gray-200 px-3 py-1 rounded-xl text-sm text-black">
                                                 {post?.tag}
                                             </span>
                                         </div>
