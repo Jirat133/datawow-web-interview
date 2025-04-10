@@ -125,7 +125,7 @@ export default function PostPage() {
         }
     };
 
-    const handleDeleteComment = async (commentId: number, author: string) => {
+    const handleDeleteComment = async (commentId: number) => {
         console.log('Deleting comment with ID:', commentId);
         try {
             const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
@@ -134,7 +134,7 @@ export default function PostPage() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    author: author, // Author of the comment
+                    author: currentUser.username, // Author of the comment
                 })
             });
             await fetchPostDetail(postId);
@@ -320,7 +320,7 @@ export default function PostPage() {
                                             <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
                                         </button>
                                         <button
-                                            onClick={() => handleDeleteComment(comment.id, comment.author)}
+                                            onClick={() => handleDeleteComment(comment.id)}
                                             className="text-gray-500 hover:text-gray-700"
                                         >
                                             <Image src={DeleteIcon} alt="Delete Icon" width={16} height={16} />
