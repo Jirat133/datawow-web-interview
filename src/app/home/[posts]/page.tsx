@@ -2,6 +2,13 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { UserContext, UserProvider } from '../../../context/UserContext';
+import HomeIcon from '../../asset/image/home_icon.png';
+import EditIcon from '../../asset/image/edit_icon.png';
+import DeleteIcon from '../../asset/image/delete_icon.png';
+import CommentIcon from '../../asset/image/comment_icon.png';
+import SearchIcon from '../../asset/image/search_icon.png';
+import Image from 'next/image';
+import { ModalPost } from '../page';
 
 
 interface Comment {
@@ -51,10 +58,14 @@ export default function PostPage() {
     const postId = searchParams.get('id');
     const [post, setPost] = useState<PostResponseDto | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editCommentId, setEditCommentId] = useState<number | null>(null);
+    const [editCommentContent, setEditCommentContent] = useState('');
+    const [commentContent, setCommentContent] = useState('');
     const [newComment, setNewComment] = useState('');
     const [commentList, setCommentList] = useState<Comment[]>([]);
     const { user: currentUser } = useContext(UserContext);
-    useEffect(() => {
+
+    const fetchPostDetail = async (postId: string | null) => {
         if (postId) {
             fetch(`http://localhost:3001/postDetail/${postId}`, {
                 method: "GET",
@@ -69,7 +80,12 @@ export default function PostPage() {
                 })
                 .catch((err) => console.error('Error fetching post:', err));
         }
-    }, [post]);
+    }
+    useEffect(() => {
+        if (postId) {
+            fetchPostDetail(postId);
+        }
+    }, []);
 
     if (!post) {
         return <div>Loading...</div>;
@@ -109,6 +125,55 @@ export default function PostPage() {
         }
     };
 
+    const handleDeleteComment = async (commentId: number, author: string) => {
+        console.log('Deleting comment with ID:', commentId);
+        try {
+            const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    author: author, // Author of the comment
+                })
+            });
+            await fetchPostDetail(postId);
+        } catch (e) {
+            alert('Failed to delete comment');
+        }
+    }
+
+
+    const handleEditComment = async () => {
+        try {
+            const response = await fetch(`http://localhost:3001/comments/${editCommentId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    content: editCommentContent, // Updated content of the comment
+                    author: currentUser.username, // Author of the comment
+                })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to edit comment');
+            }
+            const data = await response.json();
+            await fetchPostDetail(postId);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Error editing comment:', error);
+            alert('Failed to edit comment');
+        }
+    };
+
+    const onEditCommentClick = (comment: any) => {
+        setEditCommentId(comment.id);
+        setEditCommentContent(comment.content);
+        setIsModalOpen(true);
+    };
+
     return (
         <div className="font-sans bg-white min-h-screen flex">
             {/* Top Bar */}
@@ -146,8 +211,16 @@ export default function PostPage() {
                 </div>
                 {/* Go Back Button */}
                 <div className="flex-1 p-4">
+                    {/* Edit Comment Modal */}
+                    <ModalComment
+                        isModalOpen={isModalOpen}
+                        setIsModalOpen={setIsModalOpen}
+                        handleSubmit={() => handleEditComment()}
+                        commentContent={editCommentContent}
+                        setCommentContent={setEditCommentContent}
+                    />
                     {/* Add Comment Modal */}
-                    {isModalOpen && (
+                    {/* {isModalOpen && (
                         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20">
                             <div className="bg-white p-6 rounded-md shadow-md w-96">
                                 <h2 className="text-xl text-black font-bold mb-4">Add Comment</h2>
@@ -174,7 +247,7 @@ export default function PostPage() {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )} */}
                     <button
                         onClick={() => router.back()}
                         className="bg-none border border-green-500 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-100 text-green-500 mb-4"
@@ -200,7 +273,7 @@ export default function PostPage() {
                         <p className="mb-6 text-base text-black ">{post?.content}</p>
 
                         <div className="flex items-center gap-2 mb-6">
-                            <span>💬</span>
+                            <Image src={CommentIcon} alt="Comment Icon" width={16} height={16} className="mr-4" />
                             <span className="text-black">{post?.comments?.length ?? 0} comments</span>
                         </div>
 
@@ -211,13 +284,13 @@ export default function PostPage() {
                             Add Comment
                         </button> */}
                         {/* <div className="border border-gray-300 rounded-md mb-6"> */}
-                            <textarea
-                                className="border border-gray-300 rounded-md p-4 mb-6 w-full text-black"
-                                rows={3}
-                                placeholder="Write your comment here..."
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                            ></textarea>
+                        <textarea
+                            className="border border-gray-300 rounded-md p-4 mb-6 w-full text-black"
+                            rows={3}
+                            placeholder="Write your comment here..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                        ></textarea>
                         {/* </div> */}
                         <div className="flex justify-end space-x-4">
                             <button
@@ -240,8 +313,19 @@ export default function PostPage() {
                             {post?.comments?.map((comment) => (
                                 <li
                                     key={comment.id}
-                                    className="mb-4 border-b border-gray-300 pb-4"
+                                    className="relative mb-4 border-b border-gray-300 pb-4"
                                 >
+                                    <div className="absolute top-2 right-2 flex gap-2">
+                                        <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditCommentClick(comment)}>
+                                            <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteComment(comment.id, comment.author)}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            <Image src={DeleteIcon} alt="Delete Icon" width={16} height={16} />
+                                        </button>
+                                    </div>
                                     <div className="flex items-center gap-2 mb-2">
                                         <span className="text-gray-500">
                                             {comment.author}
@@ -250,15 +334,44 @@ export default function PostPage() {
                                             {new Date(comment.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    {/* <p className="font-bold mb-2 text-black">{comment.author}</p>
-                                <p className="text-sm text-gray-500 mb-2">
-                                    {new Date(comment.createdAt).toLocaleDateString()}
-                                </p> */}
                                     <p className="text-black">{comment.content}</p>
                                 </li>
                             ))}
                         </ul>
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const ModalComment = ({ isModalOpen, setIsModalOpen, handleSubmit, commentContent, setCommentContent }: any) => {
+    if (!isModalOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-20">
+            <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-96">
+                <h2 className="text-xl text-black font-bold mb-4">Edit Comment</h2>
+                <textarea
+                    className="w-full text-black border border-gray-300 rounded-md p-2 mb-4"
+                    rows={4}
+                    placeholder="What's on your mind..."
+                    value={commentContent}
+                    onChange={(e) => setCommentContent(e.target.value)}
+                ></textarea>
+                <div className="flex flex-col space-y-4">
+                    <button
+                        onClick={() => setIsModalOpen(false)}
+                        className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                        Post
+                    </button>
                 </div>
             </div>
         </div>
