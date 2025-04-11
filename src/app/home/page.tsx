@@ -135,7 +135,7 @@ export default function Homepage() {
                 return;
             } else {
                 const newPost = [...posts];
-                Object.assign(newPost[posts.findIndex((post: any) => post.id = editPostId)], data);
+                Object.assign(newPost[posts.findIndex((post: any) => post.id = editPostId)], result.data);
                 setPosts(newPost);
                 setDisplayPost(newPost);
             }
