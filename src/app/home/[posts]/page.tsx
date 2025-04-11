@@ -12,10 +12,11 @@ import { ModalPost } from '../page';
 import UserIcon from '../../asset/image/avatar_icon.png';
 import MenuIcon from '../../asset/image/menu_icon.png';
 import BackIcon from '../../asset/image/back_icon.png';
+import Link from 'next/link';
 
 interface PostDto {
-    id: number; 
-    title: string; 
+    id: number;
+    title: string;
     content: string;
     tag: string;
     author: number;
@@ -86,10 +87,10 @@ export default function PostPage() {
                 },
             });
             const result = await response.json();
-            if(!(result.statusCode === 201)){
+            if (!(result.statusCode === 201)) {
                 alert(`Failed to create comment: ${result.message}`);
                 return;
-            }else{
+            } else {
                 setPost(result.data);
             }
 
@@ -98,7 +99,7 @@ export default function PostPage() {
         } catch (error) {
             console.error('Error posting comment:', error);
             alert('Failed to post comment');
-        }finally{
+        } finally {
             setIsModalOpen(false);
             setNewComment('');
         }
@@ -119,7 +120,7 @@ export default function PostPage() {
             if (!(result.statusCode === 200)) {
                 alert(`Failed to delete comment: ${result.message}`);
                 return;
-            }else{
+            } else {
                 await fetchPostDetail(postId);
             }
 
@@ -193,16 +194,17 @@ export default function PostPage() {
 
 
             {/* Main Content */}
-            <div className="flex flex-col md:flex-row h-full pt-16 w-full">
+            <div className="flex flex-col md:flex-row h-full pt-14 w-full ">
 
                 {/* Left Menu Bar */}
-                <div className="hidden md:block w-full md:w-1/4 p-4">
+                <div className="hidden md:block w-full md:w-1/4 p-4 bg-custom-grey-100">
                     <ul className="space-y-4">
-                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                        <Link href={{ pathname: '/home/' }}
+                            className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
                             <Image src={HomeIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
                             Home
-                        </li>
-                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                        </Link>
+                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700 mt-4">
                             <Image src={EditIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
                             Our Blog
                         </li>
@@ -218,7 +220,7 @@ export default function PostPage() {
                         commentContent={editCommentContent}
                         setCommentContent={setEditCommentContent}
                     />
-   
+
                     {/* Go Back Button */}
                     <button
                         onClick={() => router.back()}

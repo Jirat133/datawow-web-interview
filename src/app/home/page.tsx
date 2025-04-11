@@ -205,15 +205,16 @@ export default function Homepage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex flex-col md:flex-row h-full pt-16">
+            <div className="flex flex-col md:flex-row h-full pt-14">
                 {/* Left Menu */}
                 <div className="hidden md:block w-full md:w-1/4 p-4">
                     <ul className="space-y-4">
-                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                        <Link href={{ pathname: '/home/' }}
+                            className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
                             <Image src={HomeIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
                             Home
-                        </li>
-                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700">
+                        </Link>
+                        <li className="text-gray-700 font-medium cursor-pointer hover:text-green-700 mt-4">
                             <Image src={EditIcon} alt="Home Icon" className="inline-block w-5 h-5 mr-2" width={20} height={20} />
                             Our Blog
                         </li>
@@ -221,7 +222,7 @@ export default function Homepage() {
                 </div>
 
                 {/* Right Content */}
-                <div className="flex-1 flex flex-col p-4 md:w-3/5 mx-auto mr-20">
+                <div className="flex-1 flex flex-col p-4 md:w-3/5 mx-auto mr-16 pr-16">
                     {/* Add Post Modal */}
                     <ModalPost
                         isModalOpen={isModalCreateOpen}
