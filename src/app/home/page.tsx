@@ -104,11 +104,12 @@ export default function Homepage() {
                 "Content-Type": "application/json",
             },
         });
-        if (response.ok) {
+        const result = await response.json();
+        if (result.statusCode === 200) {
             setPosts((prevPosts: any) => prevPosts.filter((post: any) => post.id !== deletePostId));
             setDisplayPost((prevPosts: any) => prevPosts.filter((post: any) => post.id !== deletePostId));
         } else {
-            alert('Failed to delete post');
+            alert(`Failed to delete post: ${result.message}`);
             console.error('Failed to delete post');
         }
         setIsModalDeleteOpen(false);
@@ -494,20 +495,22 @@ export const ModalDeletePost = ({ isModalOpen, setIsModalOpen, handleDelete, onC
     return (
         <div className="fixed inset-0 backdrop-brightness-70 flex justify-center items-center z-20">
             <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-96">
-                <h2 className="text-xl text-black font-bold mb-4">Delete Post</h2>
-                <p className="text-black mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
-                <div className="flex justify-between">
-                    <button
-                        onClick={() => onCancelDelete()}
-                        className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-                    >
-                        Cancel
-                    </button>
+                <h2 className="text-xl text-black font-bold mb-4 text-center">Please confirm if you wish to
+                    delete the post
+                </h2>
+                <p className="text-black mb-6 text-center">Are you sure you want to delete the post? Once deleted, it cannot be recovered.</p>
+                <div className="flex flex-col space-y-4">
                     <button
                         onClick={handleDelete}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                     >
                         Delete
+                    </button>
+                    <button
+                        onClick={() => onCancelDelete()}
+                        className="w-full px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                    >
+                        Cancel
                     </button>
                 </div>
             </div>
