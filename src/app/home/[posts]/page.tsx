@@ -9,50 +9,28 @@ import CommentIcon from '../../asset/image/comment_icon.png';
 import SearchIcon from '../../asset/image/search_icon.png';
 import Image from 'next/image';
 import { ModalPost } from '../page';
-import UserIcon from '../../asset/image/user_icon.png';
+import UserIcon from '../../asset/image/avatar_icon.png';
 import MenuIcon from '../../asset/image/menu_icon.png';
 import BackIcon from '../../asset/image/back_icon.png';
 
-
-interface Comment {
-    id: number;
-    postId: number;
+interface PostDto {
+    id: number; 
+    title: string; 
     content: string;
+    tag: string;
+    author: number;
     createdAt: Date;
     updatedAt: Date;
-    body: string;
-    author: string;
-}
-
-interface PostDto {
-    id: number; // Unique identifier for the post
-    title: string; // Title of the post
-    content: string; // Content of the post
-    tag: string; // Tag associated with the post
-    userId: number; // Author of the post
-    createdAt: Date; // Timestamp when the post was created
-    updatedAt?: Date; // Optional timestamp for when the post was last updated
-    comments?: CommentDto[]; // Optional list of comments associated with the post
+    comments?: CommentDto[];
 }
 
 interface CommentDto {
-    id: number; // Unique identifier for the comment
-    postId: number; // ID of the post the comment belongs to
-    content: string; // Content of the comment
-    author: string; // Author of the comment
-    createdAt: Date; // Timestamp when the comment was created
-    updatedAt: Date; // Timestamp when the comment was last updated
-}
-
-interface PostResponseDto {
-    id: number; // Unique identifier for the post
-    title: string; // Title of the post
-    content: string; // Content of the post
-    tag: string; // Tag associated with the post
-    author: string; // Author of the post
-    createdAt: Date; // Timestamp when the post was created
-    updatedAt?: Date; // Optional timestamp for when the post was last updated
-    comments?: CommentDto[]; // Optional list of comments associated with the post
+    id: number;
+    postId: number;
+    content: string;
+    author: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export default function PostPage() {
@@ -60,7 +38,7 @@ export default function PostPage() {
     const searchParams = useSearchParams();
     const postId = searchParams.get('id');
     const [isCommentBoxOpen, setIsCommentBoxOpen] = useState(false);
-    const [post, setPost] = useState<PostResponseDto | null>(null);
+    const [post, setPost] = useState<PostDto | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
     const [editCommentContent, setEditCommentContent] = useState('');
@@ -95,41 +73,38 @@ export default function PostPage() {
     }
 
     const handlePostComment = async () => {
-        if (newComment.trim() === '') {
-            alert('Comment cannot be empty');
-            return;
-        }
         try {
-            console.log('Current User:', currentUser);
             const response = await fetch(`http://localhost:3001/comments`, {
                 method: "POST",
                 body: JSON.stringify({
                     postId: Number(postId), // ID of the post the comment belongs to
                     content: newComment, // Content of the comment
                     author: currentUser.username, // Author of the comment
-                    createdAt: new Date(), // Timestamp when the comment was created
-                    updatedAt: new Date(), // Timestamp when the comment was last updated
                 }),
                 headers: {
                     "Content-Type": "application/json",
                 },
             });
-            if (!response.ok) {
-                throw new Error('Failed to post comment');
+            const result = await response.json();
+            if(!(result.statusCode === 201)){
+                alert(`Failed to create comment: ${result.message}`);
+                return;
+            }else{
+                setPost(result.data);
             }
-            const data = await response.json();
-            console.log('Comment posted:', data);
-            setPost(data);
+
             setNewComment('');
             setIsModalOpen(false);
         } catch (error) {
             console.error('Error posting comment:', error);
             alert('Failed to post comment');
+        }finally{
+            setIsModalOpen(false);
+            setNewComment('');
         }
     };
 
     const handleDeleteComment = async (commentId: number) => {
-        console.log('Deleting comment with ID:', commentId);
         try {
             const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
                 method: "DELETE",
@@ -140,7 +115,14 @@ export default function PostPage() {
                     author: currentUser.username, // Author of the comment
                 })
             });
-            await fetchPostDetail(postId);
+            const result = await response.json();
+            if (!(result.statusCode === 200)) {
+                alert(`Failed to delete comment: ${result.message}`);
+                return;
+            }else{
+                await fetchPostDetail(postId);
+            }
+
         } catch (e) {
             alert('Failed to delete comment');
         }
@@ -159,15 +141,21 @@ export default function PostPage() {
                     author: currentUser.username, // Author of the comment
                 })
             });
-            if (!response.ok) {
-                throw new Error('Failed to edit comment');
+
+            const result = await response.json();
+            if (!(result.statusCode === 200)) {
+                alert(`Failed to edit comment: ${result.message}`);
+                return;
+            } else {
+                await fetchPostDetail(postId);
             }
-            const data = await response.json();
-            await fetchPostDetail(postId);
+
             setIsModalOpen(false);
         } catch (error) {
             console.error('Error editing comment:', error);
             alert('Failed to edit comment');
+        } finally {
+            setIsModalOpen(false);
         }
     };
 
@@ -180,11 +168,27 @@ export default function PostPage() {
     return (
         <div className="bg-custom-grey-300 h-screen flex overflow-hidden">
             {/* Top Bar */}
-            <div className="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-custom-green-500 text-white z-10">
-                <span>aBoard</span>
-                <button className="bg-light-green-500 text-green-800 px-4 py-2 rounded-md">
-                    Sign In
-                </button>
+            <div className="fixed top-0 left-0 w-full bg-custom-green-500 text-white flex justify-between items-center p-4 z-10">
+                <div className="text-lg font-bold italic">a board</div>
+                <div className="flex items-center">
+                    <span className="hidden sm:block text-white mr-2">{currentUser.username}</span>
+                    <Image
+                        src={UserIcon}
+                        alt="User Icon"
+                        className="hidden sm:block ml-2 w-6 h-6 text-gray-500 mr-2"
+                        width={20}
+                        height={20}
+                    />
+                    <button className="block sm:hidden">
+                        <Image
+                            src={MenuIcon}
+                            alt="Edit Icon"
+                            className="w-6 h-6"
+                            width={20}
+                            height={20}
+                        />
+                    </button>
+                </div>
             </div>
 
 
@@ -214,35 +218,7 @@ export default function PostPage() {
                         commentContent={editCommentContent}
                         setCommentContent={setEditCommentContent}
                     />
-                    {/* Add Comment Modal */}
-                    {/* {isModalOpen && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-20">
-                            <div className="bg-white p-6 rounded-md shadow-md w-96">
-                                <h2 className="text-xl text-black font-bold mb-4">Add Comment</h2>
-                                <textarea
-                                    className="w-full text-black border border-gray-300 rounded-md p-2 mb-4"
-                                    rows={4}
-                                    placeholder="What's on your mind..."
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                ></textarea>
-                                <div className="flex flex-col space-y-4">
-                                    <button
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handlePostComment}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                                    >
-                                        Post
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )} */}
+   
                     {/* Go Back Button */}
                     <button
                         onClick={() => router.back()}
@@ -253,19 +229,19 @@ export default function PostPage() {
                     {/* Post Details */}
                     <div className="p-5">
                         <div className='flex items-center gap-2 mb-4'>
-                            <div className='flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full'>
+                            <div className='flex items-center justify-center w-12 h-12 bg-gray-200 rounded-full'>
                                 <Image
                                     src={UserIcon}
                                     alt="Post Image"
-                                    width={32}
-                                    height={32}
+                                    width={46}
+                                    height={46}
                                     className="rounded-full"
                                 />
 
                             </div>
                             <p className="font-bold text-black">{post?.author}</p>
                             <p className=" text-black">
-                                {new Date(post?.createdAt).toLocaleDateString()}
+                                {new Date(post?.updatedAt).toLocaleDateString()}
                             </p>
                         </div>
                         <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
@@ -284,14 +260,14 @@ export default function PostPage() {
                         </div>
 
                         {/* Add Comment Button */}
-                        {   !isCommentBoxOpen && (
+                        {!isCommentBoxOpen && (
                             <button
                                 onClick={() => setIsCommentBoxOpen(true)}
                                 className="border border-green-600 text-green-600 px-4 py-2 rounded-md hover:bg-green-100">
                                 Add Comment
                             </button>
-                            )
-       
+                        )
+
                         }
                         {
                             isCommentBoxOpen && (
@@ -326,13 +302,12 @@ export default function PostPage() {
 
 
                         {/* Comments Section */}
-                        <h2 className="text-xl font-semibold mt-6 mb-4 text-black">Comments</h2>
-                        <div className="overflow-y-auto max-h-96 h-full">
+                        <div className="overflow-y-auto max-h-96 h-full mt-4">
                             <ul className="list-none p-0">
                                 {post?.comments?.map((comment) => (
                                     <li
                                         key={comment.id}
-                                        className="relative mb-4 border-b border-gray-300 pb-4"
+                                        className="relative mb-4 pb-4"
                                     >
                                         <div className="absolute top-2 right-2 flex gap-2">
                                             <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditCommentClick(comment)}>
@@ -346,6 +321,14 @@ export default function PostPage() {
                                             </button>
                                         </div>
                                         <div className="flex items-center gap-2 mb-2">
+                                            <div className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full">
+                                                <Image
+                                                    src={UserIcon}
+                                                    alt="Comment Image"
+                                                    width={32}
+                                                    height={32}
+                                                />
+                                            </div>
                                             <span className="text-gray-500">
                                                 {comment.author}
                                             </span>

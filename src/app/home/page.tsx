@@ -9,7 +9,7 @@ import SearchIcon from '../asset/image/search_icon.png';
 import Link from 'next/link';
 import { UserContext, UserProvider } from '../../context/UserContext';
 import ChevronDown from '../asset/image/chevron_down.png';
-import UserIcon from '../asset/image/user_icon.png';
+import UserIcon from '../asset/image/avatar_icon.png';
 import MenuIcon from '../asset/image/menu_icon.png';
 import { on } from 'events';
 
@@ -20,9 +20,11 @@ export default function Homepage() {
     const [postTitle, setPostTitle] = useState<string>('');
     const [postContent, setPostContent] = useState<string>('');
     const [editPostId, setEditPostId] = useState<number | null>(null);
+    const [deletePostId, setDeletePostId] = useState<number | null>(null);
     const [tag, setTag] = useState<any>('');
     const [tagModal, setTagModal] = useState<any>('');
     const [isModalCreateOpen, setIsModalCreateOpen] = useState(false);
+    const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
     const [isModalEditOpen, setIsModalEditOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     // const [isModalCreatePostOpen, setIsModalCreatePostOpen] = useState(false);
@@ -62,46 +64,55 @@ export default function Homepage() {
         setEditPostId(null);
     };
 
-
     const handleCreatePost = async () => {
-        const response = await fetch('http://localhost:3001/posts', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                title: postTitle,
-                content: postContent, // Content of the post
-                tag: tagModal, // Tag associated with the post
-                author: currentUser.username, // Author of the post
-            })
-        });
-        const data = await response.json();
-        console.log('Create Post response data:', data);
-        setPosts((prevPosts: any) => {
-            const updatedPosts = [...prevPosts, data];
-            setDisplayPost(updatedPosts);
-            return updatedPosts;
-        });
+        try {
+            const response = await fetch('http://localhost:3001/posts', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: postTitle,
+                    content: postContent, // Content of the post
+                    tag: tagModal, // Tag associated with the post
+                    author: currentUser.username, // Author of the post
+                })
+            });
+            const result = await response.json();
+            if (!(result.statusCode === 201)) {
+                alert(`Failed to create post: ${result.message}`);
+                return;
+            }
+            setPosts((prevPosts: any) => {
+                const updatedPosts = [...prevPosts, result.data];
+                setDisplayPost(updatedPosts);
+                return updatedPosts;
+            });
+        } catch (err) {
+            alert(`Failed to create post: ${err}`);
+            console.error('Failed to create post', err);
+        }
+
 
         clearState();
     };
 
-    const handleDeletePost = async (e: any, postId: number) => {
-        e.preventDefault(); // Prevent the default behavior of the Link component
-        e.stopPropagation(); // Stop the event from bubbling up to the parent
-        const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+    const handleDeletePost = async () => {
+        const response = await fetch(`http://localhost:3001/posts/${deletePostId}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
             },
         });
         if (response.ok) {
-            setPosts((prevPosts: any) => prevPosts.filter((post: any) => post.id !== postId));
-            setDisplayPost((prevPosts: any) => prevPosts.filter((post: any) => post.id !== postId));
+            setPosts((prevPosts: any) => prevPosts.filter((post: any) => post.id !== deletePostId));
+            setDisplayPost((prevPosts: any) => prevPosts.filter((post: any) => post.id !== deletePostId));
         } else {
+            alert('Failed to delete post');
             console.error('Failed to delete post');
         }
+        setIsModalDeleteOpen(false);
+        setDeletePostId(null);
     };
 
     const handleEditpost = async () => {
@@ -116,20 +127,26 @@ export default function Homepage() {
                     content: postContent,
                     tag: tagModal,
                     author: currentUser.username, // Author of the post
-                    updatedAt: new Date().toISOString(), // Update timestamp
                 })
             });
-            const data = await response.json();
-            console.log('Edit Post response data:', data);
-            const newPost = [...posts];
-            Object.assign(newPost[posts.findIndex((post: any) => post.id = editPostId)], data);
-            setPosts(newPost);
-            setDisplayPost(newPost);
+            const result = await response.json();
+            if (!(result.statusCode === 200)) {
+                alert(`Failed to edit post: ${result.message}`);
+                return;
+            } else {
+                const newPost = [...posts];
+                Object.assign(newPost[posts.findIndex((post: any) => post.id = editPostId)], data);
+                setPosts(newPost);
+                setDisplayPost(newPost);
+            }
+
 
         } catch (err) {
             console.error('Failed to edit post', err);
+        } finally {
+            clearState();
         }
-        clearState();
+
 
     };
 
@@ -149,6 +166,16 @@ export default function Homepage() {
         setPostContent(post.content);
         setTagModal(post.tag);
         setIsModalEditOpen(true);
+    };
+
+    const onDeletePostClick = (postId: number) => {
+        setDeletePostId(postId);
+        setIsModalDeleteOpen(true);
+    };
+
+    const onCancelDelete = () => {
+        setIsModalDeleteOpen(false);
+        setDeletePostId(null);
     };
     return (
         <div className="h-screen bg-custom-grey-100 overflow-hidden">
@@ -225,6 +252,12 @@ export default function Homepage() {
                         setPostContent={setPostContent}
                     />
                     {/* Delete Post Modal */}
+                    <ModalDeletePost
+                        isModalOpen={isModalDeleteOpen}
+                        setIsModalOpen={setIsModalDeleteOpen}
+                        handleDelete={() => handleDeletePost()}
+                        onCancelDelete={onCancelDelete}
+                    />
                     {/* Search Box */}
                     <div className="flex items-center justify-between mb-4">
                         <div className='flex items-center flex-grow border border-white rounded-md'>
@@ -263,7 +296,7 @@ export default function Homepage() {
                             </div>
                         </button>
                         <button
-                            className="bg-green-700 text-white px-4 py-2 rounded-md mr-4"
+                            className="bg-custom-green-success text-white px-4 py-2 rounded-md mr-4"
                             onClick={() => onCreatePostClick()}
                         >
                             Create +
@@ -274,13 +307,13 @@ export default function Homepage() {
                     <div className="flex flex-col gap-0 overflow-y-auto h-full rounded-md">
                         {displayPost.map((post: any, index: any) => {
                             return (
-                                <div key={index} className="relative bg-white p-4 flex flex-col h-full border-b border-gray-300 hover:bg-gray-50 transition">
+                                <div key={index} className="relative bg-white p-4 flex flex-col border-b border-gray-300 hover:bg-gray-50 transition">
                                     <div className="absolute top-2 right-2 flex gap-2">
                                         <button className="text-gray-500 hover:text-gray-700" onClick={() => onEditPostClick(post)}>
                                             <Image src={EditIcon} alt="Edit Icon" width={16} height={16} />
                                         </button>
                                         <button
-                                            onClick={(e) => handleDeletePost(e, post.id)}
+                                            onClick={(e) => onDeletePostClick(post.id)}
                                             className="text-gray-500 hover:text-gray-700"
                                         >
                                             <Image src={DeleteIcon} alt="Delete Icon" width={16} height={16} />
@@ -299,6 +332,7 @@ export default function Homepage() {
 
                                             </div>
                                             <h3 className="text-sm font-medium text-gray-500 font-bold ml-2">{post.author}</h3>
+                                            <h3 className="text-sm font-medium text-gray-500 font-bold ml-2">{new Date(post.updatedAt).toLocaleDateString()}</h3>
                                         </div>
 
                                         <div className="flex flex-wrap w-1/15 h-1/15 gap-2 mb-4">
@@ -335,7 +369,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('History')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 History
                             </button>
@@ -343,7 +377,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Food')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Food
                             </button>
@@ -351,7 +385,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Pets')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Pets
                             </button>
@@ -359,7 +393,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Health')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Health
                             </button>
@@ -367,7 +401,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Fashion')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Fashion
                             </button>
@@ -375,7 +409,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Exercise')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Exercise
                             </button>
@@ -383,7 +417,7 @@ const DropDownTag = ({ setIsDropdownOpen, isDropdownOpen, onDropdownClick }: any
                         <li>
                             <button
                                 onClick={() => onDropdownClick('Others')}
-                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
                             >
                                 Others
                             </button>
@@ -400,10 +434,10 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
 
     return (
         <div className="fixed inset-0 backdrop-brightness-70 flex justify-center items-center z-20">
-            <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-96">
+            <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-[32rem]"> {/* Increased width to 32rem */}
                 <h2 className="text-xl text-black font-bold mb-4">{modalTitle}</h2>
                 <button
-                    className="inline-flex items-center justify-center mb-4 border border-green-300 rounded-md px-2 py-2 w-30"
+                    className="inline-flex items-center justify-center mb-4 border border-custom-green-success rounded-md px-2 py-2 w-30"
                     onClick={() => setIsDropDownOpen(!isDropdownOpen)}
                 >
                     <DropDownTag
@@ -412,7 +446,7 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
                         onDropdownClick={onDropdownClick}
                     />
                     <div className="flex items-center">
-                        <span className="text-green-500 mr-2 text-center">{modalTag ? modalTag : 'Community'}</span>
+                        <span className="text-custom-green-success mr-2 text-center">{modalTag ? modalTag : 'Community'}</span>
                         <Image
                             src={ChevronDown}
                             alt="Dropdown Icon"
@@ -435,16 +469,16 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
                     value={postContent}
                     onChange={(e) => setPostContent(e.target.value)}
                 ></textarea>
-                <div className="flex flex-col space-y-4">
+                <div className="flex justify-end space-x-4 mt-4">
                     <button
                         onClick={() => setIsModalOpen(false)}
-                        className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                        className="px-4 py-2 bg-white border border-custom-green-success text-custom-green-success rounded-md hover:bg-gray-400"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                        className="px-4 py-2 bg-custom-green-success text-white rounded-md hover:bg-green-700"
                     >
                         Post
                     </button>
@@ -453,3 +487,32 @@ export const ModalPost = ({ isModalOpen, setIsModalOpen, modalTitle, setIsDropDo
         </div>
     );
 }
+
+export const ModalDeletePost = ({ isModalOpen, setIsModalOpen, handleDelete, onCancelDelete }: any) => {
+    if (!isModalOpen) return null;
+
+    return (
+        <div className="fixed inset-0 backdrop-brightness-70 flex justify-center items-center z-20">
+            <div className="flex flex-col bg-white p-6 rounded-md shadow-md w-96">
+                <h2 className="text-xl text-black font-bold mb-4">Delete Post</h2>
+                <p className="text-black mb-6">Are you sure you want to delete this post? This action cannot be undone.</p>
+                <div className="flex justify-between">
+                    <button
+                        onClick={() => onCancelDelete()}
+                        className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
